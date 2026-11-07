@@ -22,8 +22,8 @@ Parent Path solves both by providing a guided, bilingual resource hub with **par
 | Feature | Description |
 |---|---|
 | Provider directory | ~20 seed providers (speech, OT, behavioral) with specialty, insurance accepted, city, phone/website |
-| Availability badge | "Accepting" / "Waitlist" / "Unknown" with last-verified date and a one-click "I called — update this" button |
-| Shared availability updates | Parent-reported updates stored in Supabase (free tier); only `provider_id`, `status`, and `date` stored; one update per provider per browser per day |
+| Availability badge | "Accepting" / "Not accepting" / "Waitlist" / "No answer" with last-verified date and a one-click "I called — update this" button |
+| Shared availability updates | Parent-reported updates stored in Supabase (free tier); only `provider_id`, `status`, and `report_date` stored; one update per provider per browser per day |
 | AI navigator | IBM Granite chat assistant answering questions about Early Steps, the age-3 transition, school evaluations, and IEPs — responds in the user's selected language |
 | IEP letter generator | Parent answers a few questions; Granite drafts an evaluation/IEP request letter in English or Spanish; no child name stored |
 | Bilingual UI | English / Spanish toggle — all UI strings and AI responses in the selected language |
@@ -50,7 +50,7 @@ Parent Path solves both by providing a guided, bilingual resource hub with **par
 | Styling | **Tailwind CSS** | Utility-first, small bundle, easy responsive design |
 | Provider data | **JSON flat file** (`/public/data/providers.json`) | No database needed for ~20 providers; editable in any text editor |
 | Availability updates | **Supabase free tier** (Postgres) | Shared across all browsers; free up to 500 MB; simple REST API; no auth required for inserts |
-| Abuse limiting | **Supabase + browser fingerprint** (date + `provider_id` + hashed browser key) | One update per provider per browser per day; no account needed |
+| Abuse limiting | **Supabase + browser fingerprint** (`report_date` + `provider_id` + hashed browser key stored in localStorage) | One update per provider per browser per day; no account needed |
 | AI chat + letter generator | **watsonx.ai Lite via REST API** (IBM Granite 3.x) | Free tier; IBM-native; satisfies challenge requirement |
 | AI safety | **Granite Guardian model** (if available on Lite tier); otherwise **prompt-based safety filter** — labeled honestly | Blocks harmful or off-topic responses; never called "Granite Guardian" if using prompt-only |
 | i18n | **react-i18next** (static JSON locale files) | Simple, well-documented; no backend needed |
@@ -108,11 +108,16 @@ Browser (React + Vite)
 |---|---|---|
 | `id` | uuid (PK) | auto-generated |
 | `provider_id` | text | matches slug in providers.json |
-| `status` | text | "accepting" / "waitlist" / "unknown" |
-| `updated_at` | timestamptz | server default now() |
-| `browser_key` | text | hashed; used for one-per-day rate limiting only; not linked to any identity |
+| `status` | text | `"accepting"` / `"not_accepting"` / `"waitlist"` / `"no_answer"` — enforced by CHECK constraint |
+| `report_date` | date | calendar date of the report; server default `CURRENT_DATE` |
+| `created_at` | timestamptz | server default `now()` |
+| `browser_key` | text | hashed; stored in **localStorage** on the client; used for one-per-day rate limiting only; not linked to any identity |
 
-The app reads the most recent update per `provider_id` to show the shared badge.
+**Unique constraint:** `(provider_id, browser_key, report_date)` — the database enforces one report per provider per browser per calendar day.
+
+**Row Level Security:** anonymous INSERT only (status must pass the CHECK constraint). No anonymous SELECT, UPDATE, or DELETE on the raw table. A view `latest_availability` exposes `provider_id`, `status`, and `created_at` (no `browser_key`) and grants anonymous SELECT on that view only.
+
+The app reads the most recent update per `provider_id` from the `latest_availability` view to show the shared badge.
 
 ---
 
@@ -125,7 +130,7 @@ The app reads the most recent update per `provider_id` to show the shared badge.
 | Accuracy / hallucination | AI answers only from a grounded system prompt with factual Early Steps / IDEA content; disclaimer shown on every AI response |
 | Accessibility | WCAG 2.1 AA color contrast; keyboard navigable chat; `aria-label` on interactive elements |
 | Transparency | "Powered by IBM Granite" label in chat widget; "AI answers may not be complete — always verify with your service coordinator" disclaimer; safety mechanism labeled accurately (Guardian model or prompt filter) |
-| Data minimalism | Availability updates store only `provider_id`, `status`, and `updated_at` — no names, no location, no device ID beyond a daily rate-limit hash |
+| Data minimalism | Availability updates store only `provider_id`, `status`, `report_date`, and `created_at` — no names, no location, no device ID beyond a daily rate-limit hash stored in localStorage |
 | Bilingual AI | Granite is instructed to respond in the user's currently selected language (EN or ES) |
 
 ---

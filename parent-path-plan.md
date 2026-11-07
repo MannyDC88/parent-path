@@ -22,19 +22,20 @@ Build a bilingual, mobile-friendly web tool for Broward County parents navigatin
 - `npm run dev` starts the app without errors
 - The app renders a header with "Parent Path", a placeholder main area, and a footer
 - The Vercel URL is live and accessible
-- Supabase project exists; `availability_updates` table is created with the schema from SPEC.md §4
+- Supabase project exists; `availability_updates` table is created with the updated schema from SPEC.md §4
 - Supabase anon key and URL are stored as Vercel environment variables
 
 **Todo List:**
-1. Run `npm create vite@latest . -- --template react` in the repo root
+1. Scaffold React + Vite into a temp subfolder (`_scaffold`), move files to root without overwriting existing files
 2. Run `npm install`
-3. Install and configure Tailwind CSS (`tailwindcss`, `postcss`, `autoprefixer`)
-4. Add Tailwind directives to `src/index.css`
-5. Replace Vite boilerplate in `src/App.jsx` with a minimal shell layout (header, main, footer)
-6. Create a free Supabase project; create the `availability_updates` table (columns: `id` uuid PK, `provider_id` text, `status` text, `updated_at` timestamptz default now(), `browser_key` text)
-7. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `.env.local` and Vercel environment variables
-8. Commit and push to GitHub (`MannyDC88/parent-path`)
-9. Connect repo to Vercel; confirm live deploy URL loads
+3. Install Tailwind CSS v4 via `@tailwindcss/vite` plugin (no `postcss`/`tailwind.config.js` — v4 uses `@import "tailwindcss"` in CSS)
+4. Install `react-router-dom`; set up a basic router with a Home placeholder route
+5. Replace Vite boilerplate in `src/App.jsx` with a minimal shell layout (header "Parent Path", main area, footer with disclaimer)
+6. Add `.gitignore` covering `node_modules`, `dist`, `.env`, `.env.local`, `.env.*.local`
+7. Create `.env.example` with placeholder names only: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+8. Create `supabase/schema.sql` with the `availability_updates` table, RLS, and `latest_availability` view — for manual review and execution in the Supabase SQL editor
+9. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to `.env.local` and Vercel environment variables
+10. Connect repo to Vercel; confirm live deploy URL loads
 
 **Relevant Context:**
 - Repo: `MannyDC88/parent-path`
@@ -129,7 +130,7 @@ Build a bilingual, mobile-friendly web tool for Broward County parents navigatin
 1. Install `@supabase/supabase-js`; create `src/api/availability.js` with two functions:
    - `getLatestAvailability(providerIds)` — fetches most recent update per provider from Supabase
    - `submitAvailabilityUpdate(providerId, status, browserKey)` — inserts a row; checks for duplicate today+provider+browserKey before inserting
-2. Create a `browserKey` utility in `src/utils/browserKey.js` — generates a stable hashed key from browser fingerprint fields (user-agent + screen dimensions) stored in sessionStorage; no PII
+2. Create a `browserKey` utility in `src/utils/browserKey.js` — generates a stable hashed key from browser fingerprint fields (user-agent + screen dimensions) stored in **localStorage**; no PII
 3. Add `AvailabilityUpdateForm` inline to `ProviderCard` (hidden by default, shown on button click)
 4. On Home page load: call `getLatestAvailability` and merge results over JSON defaults
 5. Manually test end-to-end: submit an update from one browser, open a different browser, confirm the badge shows the shared update
@@ -249,7 +250,7 @@ Build a bilingual, mobile-friendly web tool for Broward County parents navigatin
 - Pages are reachable from the main navigation
 
 **Todo List:**
-1. Install `react-router-dom`; set up routes in `App.jsx` for `/`, `/early-steps`, `/age-3-transition`, `/school-eval-iep`, `/letter`
+1. Set up additional routes in `App.jsx` for `/early-steps`, `/age-3-transition`, `/school-eval-iep`, `/letter` (react-router-dom already installed in Sub-Task 1)
 2. Create `src/pages/EarlySteps.jsx` with content on the Florida Early Steps program (eligibility, referral, IFSP)
 3. Create `src/pages/AgeThreeTransition.jsx` with content on the transition process (evaluation, IEP vs IFSP, timelines)
 4. Create `src/pages/SchoolEvalIEP.jsx` with content on requesting an evaluation, the 60-day timeline, and IEP rights
