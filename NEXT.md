@@ -1,7 +1,7 @@
 # NEXT — Immediate Next 3 Tasks
 
-> Updated: 2026-11-19 (Task 2 complete)
-> Status: Week 1 — provider directory live; moving to Supabase availability sync
+> Updated: 2026-11-19 (Task 3 complete)
+> Status: Week 1 — provider directory live with shared availability via Supabase
 
 ---
 
@@ -55,7 +55,7 @@ Steps:
 
 ---
 
-## Task 3 · Shared Availability Update Flow (Supabase)  ← **do this next**
+## Task 3 · Shared Availability Update Flow (Supabase)  ✅ done
 
 **Goal:** Wire up the Supabase `availability_updates` table so parent-reported status changes are shared across all browsers.
 

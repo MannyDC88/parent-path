@@ -4,6 +4,34 @@
 
 ---
 
+
+## 2026-11-19 · Session 5 — Task 3: Shared Availability via Supabase
+
+**What we did:**
+- Installed `@supabase/supabase-js` (only new dependency)
+- Created `src/lib/supabase.js` — builds the client from `import.meta.env`; exports `null` and silently degrades if either env var is absent (providers still load from JSON, reporting section hidden)
+- Created `src/utils/browserKey.js` — generates a `crypto.randomUUID()` once and persists it in `localStorage`; no fingerprinting or device data
+- Created `src/api/availability.js` — `getLatestAvailability(ids)` queries the `latest_availability` view; `submitAvailabilityUpdate(id, status)` inserts `{provider_id, status, browser_key}` with no `.select()` chain (anon cannot read back the row)
+- Updated `src/components/AvailabilityBadge.jsx` — switched keys to exact DB values (`not_accepting`, `no_answer`); removed `.toLowerCase()` normalisation
+- Updated `src/components/ProviderCard.jsx` — added inline "Report availability" section with four status buttons; on success updates the badge and shows "Thanks, your report helps other parents."; on duplicate (code 23505) shows "You already reported this provider today."; `aria-pressed` on each status button; section hidden when `supabase` is null
+- Updated `src/pages/Home.jsx` — after fetching JSON, calls `getLatestAvailability`, merges Supabase rows over defaults (status + `created_at` → formatted `lastVerified`); added `aria-pressed` to filter buttons
+- Build confirmed clean: 72 modules, no warnings or errors (`vite build` ✓)
+
+**How Bob helped:**
+- Read schema.sql, all existing components, and Home.jsx before writing any code
+- Applied the minimum change to each existing file; created four new files
+- Kept Supabase credentials safe: read only from `import.meta.env`, never printed or hardcoded
+
+**Decisions made:**
+- Browser key: `crypto.randomUUID()` stored in `localStorage` — simple, no PII, satisfies the DB `CHECK (char_length(browser_key) BETWEEN 8 AND 128)` constraint (UUID is 36 chars)
+- No `.select()` after insert — anon role lacks column grants to read back the row; avoids a Supabase "permission denied" error
+- Report section hidden entirely when `supabase` is null (env vars missing) so the UI stays clean in local dev without keys
+
+**Next session:** TBD (Tasks 1–3 complete)
+
+---
+
+
 ## 2026-11-19 · Session 4 — Task 2: ProviderCard + Home page list
 
 **What we did:**

@@ -3,7 +3,7 @@ const STATUS_CONFIG = {
     label: 'Accepting',
     classes: 'bg-green-100 text-green-800',
   },
-  'not accepting': {
+  not_accepting: {
     label: 'Not accepting',
     classes: 'bg-red-100 text-red-800',
   },
@@ -11,7 +11,7 @@ const STATUS_CONFIG = {
     label: 'Waitlist',
     classes: 'bg-yellow-100 text-yellow-800',
   },
-  'no answer': {
+  no_answer: {
     label: 'No answer',
     classes: 'bg-gray-100 text-gray-700',
   },
@@ -22,7 +22,7 @@ const STATUS_CONFIG = {
 }
 
 export default function AvailabilityBadge({ status, lastVerified }) {
-  const key = (status ?? 'unknown').toLowerCase()
+  const key = status ?? 'unknown'
   const config = STATUS_CONFIG[key] ?? STATUS_CONFIG.unknown
   const isUnknown = key === 'unknown'
 

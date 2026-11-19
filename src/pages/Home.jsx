@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import ProviderCard from '../components/ProviderCard'
+import { getLatestAvailability } from '../api/availability'
 
 const FILTERS = [
   { label: 'All', value: 'all' },
@@ -20,8 +21,29 @@ export default function Home() {
         if (!res.ok) throw new Error('Failed to load provider data.')
         return res.json()
       })
-      .then((data) => {
-        setProviders(data)
+      .then(async (data) => {
+        const ids = data.map((p) => p.id)
+        const supabaseRows = await getLatestAvailability(ids)
+
+        // Build a lookup map keyed by provider_id
+        const lookup = {}
+        for (const row of supabaseRows) {
+          lookup[row.provider_id] = row
+        }
+
+        // Merge: Supabase data takes precedence over JSON defaults
+        const merged = data.map((p) => {
+          const row = lookup[p.id]
+          if (!row) return p
+          const verifiedDate = new Date(row.created_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+          return { ...p, availability: row.status, lastVerified: verifiedDate }
+        })
+
+        setProviders(merged)
         setLoading(false)
       })
       .catch((err) => {
@@ -48,6 +70,7 @@ export default function Home() {
           <button
             key={f.value}
             onClick={() => setActiveFilter(f.value)}
+            aria-pressed={activeFilter === f.value}
             className={`rounded-full px-4 py-1.5 text-sm font-medium border transition-colors ${
               activeFilter === f.value
                 ? 'bg-blue-700 text-white border-blue-700'
