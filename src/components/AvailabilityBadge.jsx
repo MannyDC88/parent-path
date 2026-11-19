@@ -1,23 +1,23 @@
 const STATUS_CONFIG = {
   accepting: {
     label: 'Accepting',
-    classes: 'bg-green-100 text-green-800',
+    classes: 'bg-badge-accepting-bg text-badge-accepting-text',
   },
   not_accepting: {
     label: 'Not accepting',
-    classes: 'bg-red-100 text-red-800',
+    classes: 'bg-badge-not-accepting-bg text-badge-not-accepting-text',
   },
   waitlist: {
     label: 'Waitlist',
-    classes: 'bg-yellow-100 text-yellow-800',
+    classes: 'bg-badge-waitlist-bg text-badge-waitlist-text',
   },
   no_answer: {
     label: 'No answer',
-    classes: 'bg-gray-100 text-gray-700',
+    classes: 'bg-badge-neutral-bg text-badge-neutral-text',
   },
   unknown: {
     label: 'Unknown',
-    classes: 'bg-gray-100 text-gray-500',
+    classes: 'bg-badge-neutral-bg text-badge-neutral-text',
   },
 }
 
@@ -34,12 +34,12 @@ export default function AvailabilityBadge({ status, lastVerified }) {
         {config.label}
       </span>
       {isUnknown && (
-        <p className="text-xs text-gray-500 italic">
+        <p className="text-xs text-muted italic">
           Availability not yet verified — call to confirm.
         </p>
       )}
       {!isUnknown && lastVerified && (
-        <p className="text-xs text-gray-400">Verified {lastVerified}</p>
+        <p className="text-xs text-muted">Verified {lastVerified}</p>
       )}
     </div>
   )

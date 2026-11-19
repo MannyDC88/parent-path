@@ -4,11 +4,16 @@ import Home from './pages/Home'
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col font-sans">
-        <header className="bg-blue-700 text-white px-6 py-4 shadow">
-          <h1 className="text-2xl font-bold tracking-tight">Parent Path</h1>
-          <p className="text-sm text-blue-200 mt-0.5">
-            Broward County Early Intervention &amp; Provider Directory
+      <div className="min-h-screen flex flex-col bg-cream text-charcoal font-sans">
+        <header className="bg-sage px-6 py-5">
+          <h1
+            className="text-[30px] leading-tight text-header-cream tracking-tight"
+            style={{ fontFamily: 'Fraunces, serif', fontWeight: 500 }}
+          >
+            Parent Path
+          </h1>
+          <p className="text-sm text-header-subtitle mt-1">
+            Find therapy for your child in Broward — and see who&apos;s really accepting new patients.
           </p>
         </header>
 
@@ -16,7 +21,7 @@ export default function App() {
           <Route path="/" element={<Home />} />
         </Routes>
 
-        <footer className="bg-gray-100 border-t border-gray-200 px-6 py-4 text-xs text-gray-500 text-center">
+        <footer className="bg-footer-bg border-t border-sand px-6 py-4 text-xs text-muted text-center">
           Not affiliated with any agency. Listings are not endorsements.
         </footer>
       </div>

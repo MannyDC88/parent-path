@@ -55,6 +55,7 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
       setMessage('Thanks, your report helps other parents.')
       if (onAvailabilityUpdate) onAvailabilityUpdate(id, status, verifiedDate)
     } else if (error.code === '23505') {
+      setSelectedStatus(null)
       setMessage('You already reported this provider today.')
     } else {
       setMessage('Something went wrong. Please try again.')
@@ -63,9 +64,14 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-3 shadow-sm">
+    <div className="bg-white rounded-[14px] border border-sand p-5 flex flex-col gap-3">
       {/* Name */}
-      <h2 className="text-base font-semibold text-gray-900 leading-snug">{name}</h2>
+      <h2
+        className="text-base leading-snug text-charcoal"
+        style={{ fontFamily: 'Fraunces, serif', fontWeight: 500 }}
+      >
+        {name}
+      </h2>
 
       {/* Availability badge */}
       <AvailabilityBadge status={currentStatus} lastVerified={currentVerified} />
@@ -76,7 +82,7 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
           {specialties.map((s) => (
             <span
               key={s}
-              className="rounded-full bg-blue-50 text-blue-700 text-xs px-2 py-0.5 font-medium"
+              className="rounded-full bg-pill-bg text-pill-text text-xs px-2.5 py-0.5 font-medium"
             >
               {SPECIALTY_LABELS[s] ?? s}
             </span>
@@ -85,11 +91,11 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
       )}
 
       {/* City + phone */}
-      <div className="text-sm text-gray-700 flex flex-col gap-0.5">
-        <span>{city}</span>
+      <div className="text-sm text-charcoal flex flex-col gap-0.5">
+        <span className="text-muted">{city}</span>
         <a
           href={`tel:${phone.replace(/\D/g, '')}`}
-          className="text-blue-700 hover:underline font-medium"
+          className="text-sage hover:underline font-medium"
         >
           {phone}
         </a>
@@ -101,7 +107,7 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
           href={website}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-blue-700 hover:underline break-all"
+          className="text-sm text-sage hover:underline break-all"
         >
           {website.replace(/^https?:\/\//, '')}
         </a>
@@ -110,22 +116,22 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
       {/* Insurances — only if list is non-empty */}
       {insurances && insurances.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <p className="text-xs font-medium text-muted uppercase tracking-wide mb-1">
             Insurance
           </p>
-          <p className="text-sm text-gray-700">{insurances.join(', ')}</p>
+          <p className="text-sm text-charcoal">{insurances.join(', ')}</p>
         </div>
       )}
 
       {/* Notes */}
       {notes && (
-        <p className="text-xs text-gray-500 border-t border-gray-100 pt-2">{notes}</p>
+        <p className="text-xs text-muted border-t border-sand pt-2">{notes}</p>
       )}
 
       {/* Report availability — only shown when Supabase is configured */}
       {supabase && (
-        <div className="border-t border-gray-100 pt-3 flex flex-col gap-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="border-t border-sand pt-3 flex flex-col gap-2">
+          <p className="text-xs font-medium text-muted uppercase tracking-wide">
             Report availability
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -139,8 +145,8 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
                   aria-pressed={isPressed}
                   className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors disabled:opacity-50 ${
                     isPressed
-                      ? 'bg-blue-700 text-white border-blue-700'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-700'
+                      ? 'bg-sage text-white border-sage'
+                      : 'bg-white text-charcoal border-sand hover:border-sage hover:text-sage'
                   }`}
                 >
                   {label}
@@ -149,7 +155,7 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
             })}
           </div>
           {message && (
-            <p className="text-xs text-gray-600 italic">{message}</p>
+            <p className="text-xs text-muted italic">{message}</p>
           )}
         </div>
       )}

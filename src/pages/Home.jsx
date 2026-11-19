@@ -52,15 +52,28 @@ export default function Home() {
       })
   }, [])
 
+  function handleAvailabilityUpdate(id, status, verifiedDate) {
+    setProviders((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, availability: status, lastVerified: verifiedDate } : p
+      )
+    )
+  }
+
   const filtered =
     activeFilter === 'all'
       ? providers
       : providers.filter((p) => p.specialties?.includes(activeFilter))
 
   return (
-    <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full">
-      <h2 className="text-xl font-semibold text-gray-900 mb-1">Provider Directory</h2>
-      <p className="text-sm text-gray-500 mb-5">
+    <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full">
+      <h2
+        className="text-2xl text-charcoal mb-1"
+        style={{ fontFamily: 'Fraunces, serif', fontWeight: 500 }}
+      >
+        Provider directory
+      </h2>
+      <p className="text-sm text-muted mb-6">
         Broward County pediatric therapy providers. Call ahead to verify availability.
       </p>
 
@@ -73,8 +86,8 @@ export default function Home() {
             aria-pressed={activeFilter === f.value}
             className={`rounded-full px-4 py-1.5 text-sm font-medium border transition-colors ${
               activeFilter === f.value
-                ? 'bg-blue-700 text-white border-blue-700'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400 hover:text-blue-700'
+                ? 'bg-sage text-white border-sage'
+                : 'bg-white text-charcoal border-sand hover:border-sage hover:text-sage'
             }`}
           >
             {f.label}
@@ -84,7 +97,7 @@ export default function Home() {
 
       {/* States */}
       {loading && (
-        <p className="text-gray-400 text-sm">Loading providers…</p>
+        <p className="text-muted text-sm">Loading providers…</p>
       )}
 
       {error && (
@@ -92,14 +105,18 @@ export default function Home() {
       )}
 
       {!loading && !error && filtered.length === 0 && (
-        <p className="text-gray-500 text-sm">No providers match this filter.</p>
+        <p className="text-muted text-sm">No providers match this filter.</p>
       )}
 
       {/* Responsive grid */}
       {!loading && !error && filtered.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((provider) => (
-            <ProviderCard key={provider.id} provider={provider} />
+            <ProviderCard
+              key={provider.id}
+              provider={provider}
+              onAvailabilityUpdate={handleAvailabilityUpdate}
+            />
           ))}
         </div>
       )}

@@ -5,6 +5,28 @@
 ---
 
 
+
+## 2026-11-19 · Session 6 — Design restyle + two bug fixes
+
+**What we did:**
+- Added Google Fonts (`Fraunces` 500, `Inter` 400/500) via `<link>` in `index.html` — no new npm packages
+- Extended Tailwind v4 `@theme` in `index.css` with the full approved palette: cream page bg, warm charcoal text, muted, deep sage, sand borders, specialty pill colors, footer tint, header cream/subtitle, and all five badge color pairs
+- Restyled `App.jsx`: header now deep sage (#3F5E4A) with Fraunces 30px cream title and sage-tinted subtitle; footer uses `#F1EADF` bg with sand border; body gets cream background
+- Restyled `Home.jsx`: "Provider directory" heading in Fraunces; filter pills switch to sage fill (active) / white+sand border (inactive)
+- Restyled `ProviderCard.jsx`: 14px border-radius, sand border, roomy padding; provider name in Fraunces; specialty pills in warm sand tones; phone/website links in sage; all gray references replaced with design tokens
+- Restyled `AvailabilityBadge.jsx`: all five statuses now use the approved badge palette (accepting green, waitlist ochre, not_accepting clay, no_answer/unknown neutral)
+- **Bug fix 1 (`Home.jsx`):** added `handleAvailabilityUpdate` and passes it as `onAvailabilityUpdate` to every `ProviderCard`; badge and `lastVerified` stay correct after switching filters
+- **Bug fix 2 (`ProviderCard.jsx`):** on duplicate (23505) error, `setSelectedStatus(null)` is now called so no report button remains visually selected
+- Build confirmed clean: 72 modules, no warnings or errors (`vite build` ✓)
+
+**How Bob helped:**
+- Read all five affected files before writing any code
+- Identified Tailwind v4's CSS-first `@theme` approach (no `tailwind.config.js`) from the existing `vite.config.js` and `index.css`
+- Batched the restyle and bug fixes across files in one pass with no unrelated changes
+
+---
+
+
 ## 2026-11-19 · Session 5 — Task 3: Shared Availability via Supabase
 
 **What we did:**

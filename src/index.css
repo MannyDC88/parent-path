@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+@theme {
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Fraunces", serif;
+
+  /* Colors */
+  --color-cream: #FAF7F2;
+  --color-charcoal: #2B2A27;
+  --color-muted: #6B655C;
+  --color-sage: #3F5E4A;
+  --color-sand: #E7DFD3;
+  --color-pill-bg: #F3EBDD;
+  --color-pill-text: #6B5A3E;
+  --color-footer-bg: #F1EADF;
+  --color-header-cream: #F6F3EC;
+  --color-header-subtitle: #D9E4DB;
+
+  /* Badge colors */
+  --color-badge-accepting-bg: #E2EDDF;
+  --color-badge-accepting-text: #2F5A35;
+  --color-badge-waitlist-bg: #F6EBD3;
+  --color-badge-waitlist-text: #7A5A1E;
+  --color-badge-not-accepting-bg: #F5E1DA;
+  --color-badge-not-accepting-text: #8A3B26;
+  --color-badge-neutral-bg: #EFEBE4;
+  --color-badge-neutral-text: #5F5A52;
+}
