@@ -1,12 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-
-function Home() {
-  return (
-    <main className="flex-1 p-6">
-      <p className="text-gray-500">Provider directory coming soon.</p>
-    </main>
-  )
-}
+import Home from './pages/Home'
 
 export default function App() {
   return (

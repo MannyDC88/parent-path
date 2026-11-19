@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-11-19 · Session 4 — Task 2: ProviderCard + Home page list
+
+**What we did:**
+- Created `src/components/AvailabilityBadge.jsx` — colored badge for Accepting / Not accepting / Waitlist / No answer / Unknown; shows "Availability not yet verified — call to confirm." for unknown status
+- Created `src/components/ProviderCard.jsx` — displays name, availability badge, specialties (pill tags), city, tap-to-call phone link, website (only if non-null), insurances (only if non-empty), and notes
+- Created `src/pages/Home.jsx` — fetches `/data/providers.json` via `fetch`, holds filter state, renders All / Speech / OT / Behavioral filter buttons above a responsive 1→2→3 column grid
+- Updated `src/App.jsx` to import and use the real `Home` page, removing the placeholder
+- Build confirmed clean: 26 modules, no warnings or errors (`vite build` ✓)
+
+**How Bob helped:**
+- Read `providers.json`, `App.jsx`, `devlog.md`, and `NEXT.md` before writing any code
+- Wrote all three new files from scratch following Tailwind-only constraint (no new dependencies)
+- Applied minimal diff to `App.jsx` (swap placeholder inline component for real import)
+- Marked Tasks 1 & 2 done in `NEXT.md`, flagged Task 3 as next
+
+**Next session:** Task 3 — Supabase availability sync (install `@supabase/supabase-js`, wire up `availability_updates` table, add `AvailabilityUpdateForm` to `ProviderCard`)
+
+---
+
 ## 2026-11-06 · Session 1 — Project Planning
 
 **What we did:**

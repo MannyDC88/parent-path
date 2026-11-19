@@ -1,11 +1,11 @@
 # NEXT — Immediate Next 3 Tasks
 
-> Updated: 2026-11-07 (Sub-Task 1 complete)
-> Status: Week 1 — moving to provider seed data
+> Updated: 2026-11-19 (Task 2 complete)
+> Status: Week 1 — provider directory live; moving to Supabase availability sync
 
 ---
 
-## Task 1 · Curate and create `providers.json` seed data  ← **do this next**
+## Task 1 · Curate and create `providers.json` seed data  ✅ done
 
 **Goal:** Hand-curate ~20 real, verified Broward County therapy providers and write the JSON file.
 
@@ -38,7 +38,7 @@ Create `/public/data/providers.json` with only providers you have personally ver
 
 ---
 
-## Task 2 · Build the `ProviderCard` component + Home page list
+## Task 2 · Build the `ProviderCard` component + Home page list  ✅ done
 
 **Goal:** Render the provider list on the Home page with availability badges and a specialty filter.
 
@@ -55,7 +55,7 @@ Steps:
 
 ---
 
-## Task 3 · Shared Availability Update Flow (Supabase)
+## Task 3 · Shared Availability Update Flow (Supabase)  ← **do this next**
 
 **Goal:** Wire up the Supabase `availability_updates` table so parent-reported status changes are shared across all browsers.
 
