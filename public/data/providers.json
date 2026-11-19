@@ -1,0 +1,243 @@
+[
+  {
+    "id": "jdch-hollywood",
+    "name": "Joe DiMaggio Children's Hospital Rehab – Hollywood",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT",
+      "feeding"
+    ],
+    "insurances": [],
+    "city": "Hollywood",
+    "phone": "954-265-5453",
+    "website": "https://jdch.com/services/peds-outpatient-rehab",
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Physician referral required. Services vary by location."
+  },
+  {
+    "id": "jdch-pembroke-pines",
+    "name": "Joe DiMaggio Children's Hospital Rehab – Pembroke Pines",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT"
+    ],
+    "insurances": [],
+    "city": "Pembroke Pines",
+    "phone": "954-844-7180",
+    "website": "https://jdch.com/services/peds-outpatient-rehab",
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Physician referral required."
+  },
+  {
+    "id": "jdch-miramar",
+    "name": "Joe DiMaggio Children's Hospital Rehab – Miramar",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT"
+    ],
+    "insurances": [],
+    "city": "Miramar",
+    "phone": "954-538-5860",
+    "website": "https://jdch.com/services/peds-outpatient-rehab",
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Physician referral required."
+  },
+  {
+    "id": "jdch-coral-springs",
+    "name": "Joe DiMaggio Children's Hospital Rehab – Coral Springs",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT",
+      "feeding"
+    ],
+    "insurances": [],
+    "city": "Coral Springs",
+    "phone": "954-575-8962",
+    "website": "https://jdch.com/services/peds-outpatient-rehab",
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Physician referral required."
+  },
+  {
+    "id": "therapies-4-kids-pembroke-pines",
+    "name": "Therapies 4 Kids (T4K) – Pembroke Pines",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT",
+      "behavioral"
+    ],
+    "insurances": [
+      "Medicaid",
+      "Aetna",
+      "Cigna",
+      "Humana"
+    ],
+    "city": "Pembroke Pines",
+    "phone": "954-828-0425",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Offers ABA. In-office and virtual. Also has Weston and Coral Springs locations."
+  },
+  {
+    "id": "paradise-speech-therapy",
+    "name": "Paradise Speech Therapy, LLC",
+    "specialties": [
+      "speech"
+    ],
+    "insurances": [],
+    "city": "Fort Lauderdale",
+    "phone": "954-801-5966",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Early intervention; family-involvement focus."
+  },
+  {
+    "id": "breakthrough-therapy-services",
+    "name": "Breakthrough Therapy Services",
+    "specialties": [
+      "speech",
+      "OT"
+    ],
+    "insurances": [],
+    "city": "Davie",
+    "phone": "954-474-8048",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Ages 0–21; autism and developmental delays."
+  },
+  {
+    "id": "language-link-therapy",
+    "name": "Language Link Therapy",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT"
+    ],
+    "insurances": [],
+    "city": "Cooper City",
+    "phone": "954-689-0730",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Serves children with special needs."
+  },
+  {
+    "id": "pediatric-therapy-associates",
+    "name": "Pediatric Therapy Associates of South Florida",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT",
+      "feeding"
+    ],
+    "insurances": [],
+    "city": "Plantation",
+    "phone": "954-583-7383",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Infants and children."
+  },
+  {
+    "id": "communication-therapy-clinic",
+    "name": "Communication Therapy Clinic, LLC",
+    "specialties": [
+      "speech"
+    ],
+    "insurances": [],
+    "city": "Plantation",
+    "phone": "954-408-3708",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Insurance status unclear; may be private pay."
+  },
+  {
+    "id": "habla-conmigo",
+    "name": "Habla Conmigo Speech Therapy Services",
+    "specialties": [
+      "speech"
+    ],
+    "insurances": [],
+    "city": "Lauderdale Lakes",
+    "phone": "954-533-2226",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Spanish-language services not yet confirmed."
+  },
+  {
+    "id": "specialized-speech-ot",
+    "name": "Specialized Speech & Occupational Therapy",
+    "specialties": [
+      "speech",
+      "OT"
+    ],
+    "insurances": [],
+    "city": "Hollywood",
+    "phone": "954-442-9422",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": ""
+  },
+  {
+    "id": "konfetti-kidz-therapy",
+    "name": "Konfetti Kidz Therapy, LLC",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT"
+    ],
+    "insurances": [],
+    "city": "Pembroke Pines",
+    "phone": "954-606-5439",
+    "website": null,
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Also offers social-skills groups."
+  },
+  {
+    "id": "bridge-therapy",
+    "name": "Bridge Therapy",
+    "specialties": [
+      "speech"
+    ],
+    "insurances": [
+      "Private pay only"
+    ],
+    "city": "Coral Springs",
+    "phone": "954-744-3699",
+    "website": "https://mybridgetherapy.com",
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Apraxia specialty. Does not take insurance."
+  },
+  {
+    "id": "totally-kids-pediatric-therapy",
+    "name": "Totally Kids Pediatric Therapy",
+    "specialties": [
+      "speech",
+      "OT",
+      "PT"
+    ],
+    "insurances": [],
+    "city": "Serves many Broward cities",
+    "phone": "954-951-5435",
+    "website": "https://totallykidsbroward.com",
+    "availability": "unknown",
+    "lastVerified": null,
+    "notes": "Comes to you: in-home and telehealth."
+  }
+]
