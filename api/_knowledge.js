@@ -16,28 +16,34 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const allProviders = require(path.join(__dirname, '../public/data/providers.json'))
 
 // Keep only the fields we want to expose in the prompt.
-const providers = allProviders.map(({ name, specialties, city, phone, website }) => ({
+const providers = allProviders.map(({ name, specialties, city, phone, website, notes }) => ({
   name,
   specialties,
   city,
   phone,
   website: website ?? null,
+  notes: notes || '',
 }))
 
 const PROVIDERS_TEXT = providers
   .map((p) => {
     const specs = p.specialties.join(', ')
-    const web = p.website ? ` | ${p.website}` : ''
-    return `- ${p.name} (${p.city}) | ${specs} | ${p.phone}${web}`
+    const web = p.website ? p.website : 'none listed'
+    const notesPart = p.notes ? ` | Note: ${p.notes}` : ''
+    return `- ${p.name} (${p.city}) | ${specs} | ${p.phone} | website: ${web}${notesPart}`
   })
   .join('\n')
 
 export const SYSTEM_PROMPT = `You are the Parent Path assistant for parents in Broward County, Florida.
 - Answer ONLY using the VERIFIED FACTS and PROVIDERS below. Never invent phone numbers, websites, provider names, fees, eligibility rules, or timelines.
+- Only share a website if it appears exactly in PROVIDERS or VERIFIED FACTS. Never create or guess a URL.
 - If the facts don't cover the question, say you don't have verified information and suggest calling Child Find (754-321-7200) or CDTC (954-728-1083).
 - Reply in the same language the parent uses (English or Spanish).
 - Keep official program and agency names in English; you may add a short Spanish explanation in parentheses.
 - Do not diagnose or give medical or legal advice. Never say a provider is accepting new patients; tell parents to call to confirm and to check the directory's availability reports.
+- Whenever you list providers, end with: call ahead to confirm they're taking new patients and accept your insurance.
+- The CMS Plan hotline (1-855-901-5390) is only for CMS Plan clinical eligibility screening. Do not present it as a way to check coverage or which providers accept Medicaid.
+- For children ages 3 to 5, mention that Child Find (754-321-7200) offers free assessments. For children under 3, point to Early Steps (contact CDTC at 954-728-1083 or Child Find at 754-321-7200).
 - If a child may be in danger or having a medical emergency, tell the parent to call 911 or their doctor.
 - Keep answers short: 3–6 sentences or a short list.
 - Never ask for the child's name, diagnosis, or other personal details.

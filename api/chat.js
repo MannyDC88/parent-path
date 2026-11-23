@@ -13,6 +13,137 @@
 import { SYSTEM_PROMPT } from './_knowledge.js'
 
 // ---------------------------------------------------------------------------
+// Safety net: allowlists derived from SYSTEM_PROMPT
+//
+// SYSTEM_PROMPT already contains every verified URL and phone number (from
+// both the VERIFIED FACTS section and the PROVIDERS list). Deriving the
+// allowlists from it means they always stay in sync with _knowledge.js — no
+// separate providers.json load needed here.
+// ---------------------------------------------------------------------------
+
+// --- Allowed domains ---
+// Extract every http(s) URL and every bare domain from the prompt, normalise
+// to lowercase with no leading "www.", collect into a Set.
+function _extractDomains(text) {
+  const domains = new Set()
+  // Full URLs: https://example.com/path
+  const urlRe = /https?:\/\/(?:www\.)?([a-z0-9-]+(?:\.[a-z]{2,})+)/gi
+  for (const [, host] of text.matchAll(urlRe)) {
+    domains.add(host.toLowerCase())
+  }
+  // Bare domains already in the prompt (e.g., "floridahealthjustice.org", "card@nova.edu" excluded below)
+  // Pattern: word.tld or word.word.tld — must NOT be preceded by "@" (email guard)
+  const bareRe = /(?<![/@\w])(?:www\.)?([a-z0-9-]+\.(?:org|com|gov|edu|net)(?:\/[^\s)>\]"']*)?)/gi
+  for (const [, host] of text.matchAll(bareRe)) {
+    // Keep only the hostname part (drop any path)
+    const hostname = host.split('/')[0].toLowerCase()
+    domains.add(hostname)
+  }
+  return domains
+}
+
+const ALLOWED_DOMAINS = _extractDomains(SYSTEM_PROMPT)
+
+// --- Allowed phone numbers ---
+// Extract every phone in the prompt, normalise to digits only, collect into a
+// Set. 911 and 211 are excluded from scrubbing later (they're always safe).
+function _normalizePhone(digits) {
+  // Drop a leading country-code 1 so "18559015390" and "8559015390" match the same entry.
+  return digits.length === 11 && digits[0] === '1' ? digits.slice(1) : digits
+}
+
+function _extractPhones(text) {
+  const phones = new Set()
+  const phoneRe = /(?<!\d)(?:1[-.\s]?)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}(?!\d)/g
+  for (const [match] of text.matchAll(phoneRe)) {
+    phones.add(_normalizePhone(match.replace(/\D/g, '')))
+  }
+  return phones
+}
+
+const ALLOWED_PHONES = _extractPhones(SYSTEM_PROMPT)
+
+// Short numbers that are always allowed regardless (emergency / directory).
+const ALWAYS_ALLOW_PHONES = new Set(['911', '211'])
+
+// ---------------------------------------------------------------------------
+// scrubUrls
+//
+// Removes URLs and bare domains the model invented that weren't in the
+// grounding prompt, so parents are never sent to a hallucinated address.
+// Handles:
+//   - markdown links: [text](url) — keep whole link or replace whole link
+//   - https?:// URLs
+//   - bare domains like "example.com" or "www.example.org/path"
+//   - emails (card@nova.edu) are left untouched
+// ---------------------------------------------------------------------------
+function _domainAllowed(raw) {
+  // Strip protocol and www, take only the hostname portion
+  const noProto = raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '')
+  const hostname = noProto.split(/[/?#]/)[0].toLowerCase()
+  return ALLOWED_DOMAINS.has(hostname)
+}
+
+// Matches markdown links: [label](url)
+const MD_LINK_RE = /\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g
+// Matches absolute https?:// URLs (no lookahead — markdown links are protected via placeholder swap).
+const ABS_URL_RE = /https?:\/\/[^\s"')>\]]+/gi
+// Matches bare domains (not preceded by @ or / to avoid emails and URL paths).
+// Requires a known TLD so plain words like "e.g." don't match.
+const BARE_DOMAIN_RE = /(?<![/@\w])(?:www\.)?[a-z0-9-]+\.(?:org|com|gov|edu|net)(?:\/[^\s)>\]"']*)*/gi
+
+function scrubUrls(text) {
+  // 1. Replace each markdown link with an opaque placeholder so the URLs
+  //    inside them are invisible to steps 2 and 3. Allowed links are stored
+  //    for restoration; disallowed links are immediately replaced.
+  const kept = []
+  let out = text.replace(MD_LINK_RE, (full, label, url) => {
+    if (_domainAllowed(url)) {
+      const token = `__MDLINK${kept.length}__`
+      kept.push(full)
+      return token
+    }
+    return '(no website listed)'
+  })
+
+  // 2. Scrub remaining absolute URLs (fake ones before a real markdown link
+  //    are now visible because the real link has been tokenised away).
+  out = out.replace(ABS_URL_RE, (url) =>
+    _domainAllowed(url) ? url : '(no website listed)'
+  )
+
+  // 3. Scrub bare domains (email guard: BARE_DOMAIN_RE uses a negative lookbehind for @).
+  out = out.replace(BARE_DOMAIN_RE, (domain) =>
+    _domainAllowed(domain) ? domain : '(no website listed)'
+  )
+
+  // 4. Restore kept markdown links.
+  kept.forEach((original, i) => {
+    out = out.replace(`__MDLINK${i}__`, original)
+  })
+
+  return out
+}
+
+// ---------------------------------------------------------------------------
+// scrubPhones
+//
+// Replaces any US phone number not in the grounding prompt with a safe
+// fallback. Protects parents from being given a hallucinated number.
+// 911 and 211 are always left intact.
+// ---------------------------------------------------------------------------
+// Matches common US phone formats: 954-728-1083 (954) 728-1083 1-855-901-5390
+const PHONE_RE = /(?<!\d)(?:1[-.\s]?)?(?:\(\d{3}\)|\d{3})[-.\s]?\d{3}[-.\s]?\d{4}(?!\d)/g
+
+function scrubPhones(text) {
+  return text.replace(PHONE_RE, (match) => {
+    const digits = _normalizePhone(match.replace(/\D/g, ''))
+    if (ALWAYS_ALLOW_PHONES.has(digits)) return match
+    return ALLOWED_PHONES.has(digits) ? match : '(call Child Find at 754-321-7200 for help)'
+  })
+}
+
+// ---------------------------------------------------------------------------
 // IAM token cache (module scope — reused across warm invocations)
 // ---------------------------------------------------------------------------
 let _iamToken = null
@@ -127,9 +258,13 @@ export default async function handler(req, res) {
     }
 
     const data = await watsonxRes.json()
-    const reply =
+    const raw =
       data?.choices?.[0]?.message?.content?.trim() ||
       'I wasn\'t able to get a response. Please try again or call Child Find at 754-321-7200.'
+
+    // Scrub hallucinated URLs and phone numbers before the reply reaches the
+    // client. Both allowlists are derived from SYSTEM_PROMPT at module load.
+    const reply = scrubPhones(scrubUrls(raw))
 
     return res.status(200).json({ reply })
   } catch (err) {
