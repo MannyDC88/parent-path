@@ -2,14 +2,7 @@ import { useState } from 'react'
 import AvailabilityBadge from './AvailabilityBadge'
 import { submitAvailabilityUpdate } from '../api/availability'
 import { supabase } from '../lib/supabase'
-
-const SPECIALTY_LABELS = {
-  speech: 'Speech',
-  OT: 'OT',
-  PT: 'PT',
-  behavioral: 'Behavioral',
-  feeding: 'Feeding',
-}
+import { SPECIALTY_LABELS, specialtyPillStyle } from '../utils/specialtyPills'
 
 const REPORT_STATUSES = [
   { value: 'accepting', label: 'Accepting' },
@@ -82,7 +75,8 @@ export default function ProviderCard({ provider, onAvailabilityUpdate }) {
           {specialties.map((s) => (
             <span
               key={s}
-              className="rounded-full bg-pill-bg text-pill-text text-xs px-2.5 py-0.5 font-medium"
+              className="rounded-full text-xs px-2.5 py-0.5 font-medium"
+              style={specialtyPillStyle(s)}
             >
               {SPECIALTY_LABELS[s] ?? s}
             </span>

@@ -13,6 +13,18 @@
   --color-sand: #E7DFD3;
   --color-pill-bg: #F3EBDD;
   --color-pill-text: #6B5A3E;
+
+  /* Specialty pill colors */
+  --color-pill-speech-bg: #DCE7F5;
+  --color-pill-speech-text: #28487A;
+  --color-pill-ot-bg: #F7EDC8;
+  --color-pill-ot-text: #6B5310;
+  --color-pill-behavioral-bg: #DDEFEC;
+  --color-pill-behavioral-text: #1F5C55;
+  --color-pill-pt-bg: #E9E4F5;
+  --color-pill-pt-text: #4A3B7A;
+  --color-pill-feeding-bg: #FBE5D6;
+  --color-pill-feeding-text: #7A3E1C;
   --color-footer-bg: #F1EADF;
   --color-header-cream: #F6F3EC;
   --color-header-subtitle: #D9E4DB;

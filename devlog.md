@@ -4,7 +4,25 @@
 
 ---
 
+## 2026-11-23 · Session 9 — UI polish: color accents, header alignment, page feedback form
 
+**What we changed:**
+
+- `src/App.jsx` — wrapped header text in a `max-w-5xl mx-auto` container so the title/subtitle line up with the page content. Added a decorative 4-color stripe (5 px, `aria-hidden`) between the header and page body: blue `#6F95C7`, yellow `#E8C766`, coral `#D9776B`, green `#7FAE72`. Added `<PageFeedback />` inside the footer (also inside the max-width container).
+- `src/index.css` — added 10 specialty pill color tokens (`--color-pill-speech-bg/text`, `ot`, `behavioral`, `pt`, `feeding`) to the Tailwind v4 `@theme` block; kept as documentation — components use inline styles for Tailwind v4 compatibility.
+- `src/utils/specialtyPills.js` *(new)* — single source of truth for specialty color mapping (`SPECIALTY_COLORS`) and label lookup (`SPECIALTY_LABELS`). Exports `specialtyPillStyle(key)` → inline style object. Behavioral/ABA uses teal (`#DDEFEC / #1F5C55`) instead of green to avoid conflation with the "Accepting" availability badge (`#E2EDDF / #2F5A35`).
+- `src/components/ProviderCard.jsx` — replaced static `bg-pill-bg text-pill-text` classes with `style={specialtyPillStyle(s)}`; removed the now-redundant local `SPECIALTY_LABELS` constant (imported from shared util).
+- `src/components/ChatAssistant.jsx` — same pill update in `ProviderMiniCard`; now shows translated labels (`SPECIALTY_LABELS[s] ?? s`) instead of raw keys.
+- `src/components/PageFeedback.jsx` *(new)* — "Was this page helpful?" Yes/No buttons. After a vote, shows an optional comment textarea (max 300 chars, live counter). Privacy note in EN + ES. On Send, inserts `{ helpful, comment, page, lang }` into Supabase `page_feedback`; shows "Thanks for your feedback!" / "¡Gracias por sus comentarios!" and hides the form. Degrades silently if Supabase is not configured.
+- `supabase/page_feedback.sql` *(new)* — `page_feedback` table: `id` identity PK, `helpful boolean not null`, `comment text null check (char_length(comment) <= 300)`, `page text not null check (char_length(page) <= 100)`, `lang text not null check (lang in ('en','es'))`, `created_at timestamptz not null default now()`. RLS enabled; anon INSERT policy; `REVOKE ALL … GRANT INSERT (helpful, comment, page, lang)` to anon. File left unrun for developer review.
+
+**How Bob helped:**
+- Read all 7 relevant files before writing a line; confirmed accepting badge green vs behavioral green clash before switching behavioral to teal.
+- Extracted shared specialty pill logic into one new utility file; both `ProviderCard` and `ProviderMiniCard` now import from it — no duplicated mapping.
+- Applied minimum diff to each existing file; created 3 new files (`specialtyPills.js`, `PageFeedback.jsx`, `page_feedback.sql`).
+- Did not add any new npm packages.
+
+---
 
 ## 2026-11-23 · Session 8 — Provider cards in chat (AI writes guidance, data drives cards)
 

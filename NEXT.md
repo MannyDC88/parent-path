@@ -1,7 +1,7 @@
 # NEXT — Immediate Next 3 Tasks
 
-> Updated: 2026-11-23 (Task 5 complete — Provider cards in chat)
-> Status: Week 2 — provider directory + AI chat with provider cards live
+> Updated: 2026-11-23 (Session 9 complete — UI polish: color accents, header alignment, page feedback)
+> Status: Week 2 — provider directory + AI chat + polish live
 
 ---
 
@@ -96,3 +96,18 @@ Steps:
 6. Test end-to-end: submit from one browser, confirm another browser sees the update; submit twice in one day, confirm the second is blocked
 
 **Done when:** Badge reflects Supabase data across browsers; duplicate submissions are rejected.
+
+---
+
+## Task 6 · Deploy `page_feedback` table to Supabase
+
+**Pre-requisite:** Session 9 is merged and deployed.
+
+Steps:
+1. Open the Supabase SQL editor for the `parent-path` project.
+2. Paste and run `supabase/page_feedback.sql`.
+3. Test: submit "Yes" with a comment and confirm a row appears in the `page_feedback` table.
+4. Test: submit "No" with no comment; confirm `comment` is `null`.
+5. Test: attempt to SELECT from `page_feedback` as anon — should return "permission denied".
+
+**Done when:** Rows insert successfully; anon cannot SELECT; RLS is confirmed enabled.

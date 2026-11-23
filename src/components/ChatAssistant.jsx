@@ -13,6 +13,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { getLatestAvailability } from '../api/availability'
 import AvailabilityBadge from './AvailabilityBadge'
+import { SPECIALTY_LABELS, specialtyPillStyle } from '../utils/specialtyPills'
 
 // ---------------------------------------------------------------------------
 // Language detection
@@ -107,9 +108,10 @@ function ProviderMiniCard({ provider, availability, lang }) {
         {provider.specialties.map((s) => (
           <span
             key={s}
-            className="bg-pill-bg text-pill-text rounded-full px-2 py-0.5 text-[10px] font-medium"
+            className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+            style={specialtyPillStyle(s)}
           >
-            {s}
+            {SPECIALTY_LABELS[s] ?? s}
           </span>
         ))}
       </div>
