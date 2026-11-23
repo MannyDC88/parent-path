@@ -1,7 +1,7 @@
 # NEXT — Immediate Next 3 Tasks
 
-> Updated: 2026-11-19 (Task 3 complete)
-> Status: Week 1 — provider directory live with shared availability via Supabase
+> Updated: 2026-11-23 (Task 4 complete — AI Chat Assistant)
+> Status: Week 2 — provider directory + AI chat assistant live
 
 ---
 
@@ -52,6 +52,21 @@ Steps:
 5. Replace the placeholder `<Home />` in `App.jsx` with the real page
 
 **Done when:** The home page shows all provider cards with badges, and filter buttons correctly narrow the list on both desktop and mobile viewports.
+
+---
+
+## Task 4 · Parent Path AI Chat Assistant  ✅ done
+
+**Goal:** Integrate IBM Granite chatbot into the existing app.
+
+**What was done:**
+- `api/_knowledge.js` — system prompt, verified facts, providers (server-side only)
+- `api/chat.js` — Vercel serverless function: IAM token caching, message validation, watsonx.ai Granite call, privacy-safe error handling
+- `src/components/ChatAssistant.jsx` — floating button, responsive chat panel, 👍/👎 feedback (logs rating + lang to Supabase, no message text)
+- `supabase/chat_feedback.sql` — schema to review and run manually
+- `src/App.jsx` — `<ChatAssistant />` wired into layout
+
+**Pre-requisite before testing:** Add `WATSONX_API_KEY`, `WATSONX_PROJECT_ID`, `WATSONX_URL` to Vercel server-side env vars (no VITE_ prefix). Run `supabase/chat_feedback.sql` in Supabase SQL editor.
 
 ---
 

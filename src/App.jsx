@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Home from './pages/Home'
+import ChatAssistant from './components/ChatAssistant'
 
 export default function App() {
   return (
@@ -24,6 +25,8 @@ export default function App() {
         <footer className="bg-footer-bg border-t border-sand px-6 py-4 text-xs text-muted text-center">
           Not affiliated with any agency. Listings are not endorsements.
         </footer>
+
+        <ChatAssistant />
       </div>
     </BrowserRouter>
   )

@@ -6,6 +6,30 @@
 
 
 
+## 2026-11-23 · Session 7 — Parent Path AI Chat Assistant (IBM Granite)
+
+**What we built:**
+- `api/_knowledge.js` — module-scoped knowledge file (not a Vercel endpoint). Builds the system prompt containing the full behavior rules, all verified facts from `research/content-notes.md` (Early Steps, Child Find, CMS Plan, EPSDT, UM-NSU CARD, other Broward agencies), and a providers section loaded from `public/data/providers.json` via `createRequire`. Strips availability status; exposes only name, specialties, city, phone, and website.
+- `api/chat.js` — Vercel Node serverless function (ESM). POST-only (405 otherwise). Validates messages: last 8, roles user/assistant only, content max 1 000 chars, rejects empty. Fetches an IBM IAM token with form-encoded apikey grant; caches the token in module scope and refreshes 60 s before expiry. Calls `${WATSONX_URL}/ml/v1/text/chat?version=2025-10-25` with model `ibm/granite-4-h-small`, `max_tokens: 400`, `temperature: 0`. On any error returns a friendly generic message; never logs message content, never exposes keys or raw IBM errors.
+- `src/components/ChatAssistant.jsx` — floating "Ask Parent Path / Pregunte" button (bottom-right). Opens a chat panel (full-screen sheet on mobile, 380×520 px panel on sm+). Privacy note in EN/ES under the header. Messages in React state only — no localStorage, no Supabase. Loading indicator (animated dots). Friendly error on fetch failure. Escape key closes panel; focus returns to trigger button; Tab focus trap inside panel; aria labels, role="dialog", aria-modal, aria-live on message area.
+- `FeedbackButtons` sub-component — 👍/👎 under each assistant reply. On click, inserts `{ rating, lang }` into Supabase `chat_feedback`; buttons disabled after one click; shows "Thanks!/¡Gracias!". Language detected from last user message (Spanish accent/keyword heuristic). Never sends question or answer text.
+- `supabase/chat_feedback.sql` — table with id, rating (check in/up/down), lang (check in/en/es), created_at (db-set, client cannot supply). RLS enabled; anon INSERT-only policy. File left unrun for developer review.
+- `src/App.jsx` — added `import ChatAssistant` and `<ChatAssistant />` inside the layout (after footer, still inside the outer div).
+
+**How Bob helped:**
+- Read all 9 relevant files before writing a single line (content-notes.md, providers.json, App.jsx, index.css, Home.jsx, supabase.js, package.json, devlog.md, NEXT.md).
+- Identified only the verified facts in content-notes.md (skipped everything marked "to verify," "not covered," or uncertain) and copied them verbatim — no paraphrasing or gap-filling.
+- Chose `createRequire` for JSON loading inside a Vercel ESM serverless function (no new npm packages).
+- Matched the existing palette and typography exactly (sage, cream, charcoal, Fraunces headings, Inter body, sand borders) without touching any unrelated component.
+
+**Security decisions:**
+- `WATSONX_API_KEY`, `WATSONX_PROJECT_ID`, `WATSONX_URL` read from `process.env` server-side only — no `VITE_` prefix, never sent to the browser.
+- IAM token cached in module scope; never returned to the client.
+- Error responses are generic friendly messages; raw IBM error bodies and HTTP statuses are never forwarded.
+- `chat_feedback` stores rating + lang only — no message text, no child data.
+
+---
+
 ## 2026-11-19 · Session 6 — Design restyle + two bug fixes
 
 **What we did:**
