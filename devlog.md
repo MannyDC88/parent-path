@@ -4,6 +4,25 @@
 
 ---
 
+## 2026-11-23 · Session 10 — Logo, header restyle, favicon, smart filter buttons, chat button spacing
+
+**What we changed:**
+
+- `src/components/Logo.jsx` *(new)* — renders the Parent Path logomark SVG (`aria-hidden="true"`). Accepts a `size` prop; defaults to 48 px.
+- `src/App.jsx` — header container switched to `flex items-center gap-4`. Logo at left (56 px desktop / 38 px mobile via `hidden sm:block` / `block sm:hidden` wrappers). `<h1>` split into two inline pieces: "Parent " in white `font-weight:600` with `fontVariationSettings: "'SOFT' 100"`, "Path" as `<em>` in italic `#F2D57E`. Font size uses `clamp(28px, 5vw, 42px)` so it scales between breakpoints without hard `sm:`/`lg:` classes. Tagline font size uses `clamp(14px, 2vw, 15px)`.
+- `index.html` — updated Google Fonts URL for Fraunces to include the full italic + SOFT variable axis (`ital,opsz,wght,SOFT@0,9..144,400..700,0..100;1,9..144,400..700,0..100`). Favicon was already pointing to `/favicon.svg` and title was already "Parent Path" — no change needed there.
+- `public/favicon.svg` — replaced the default Vite bolt icon with the Parent Path mark: sage circle (`#3F5E4D`) + cream dotted path + yellow dot. Small-size optimized (thicker stroke, slightly larger endpoint dot).
+- `src/utils/specialtyPills.js` — exported `SPECIALTY_COLORS` (was previously unexported) and added `SPECIALTY_ORDER` constant listing the 5 specialty keys in canonical display order (`speech, OT, PT, behavioral, feeding`).
+- `src/pages/Home.jsx` — removed hard-coded `FILTERS` constant. After providers load, derives `availableFilters` from actual specialties present, ordered by `SPECIALTY_ORDER` — so PT and Feeding now appear. "All" button keeps its sage style. Specialty filter buttons use `specialtyPillStyle` colors: unselected = pill bg/text; selected = specialty text-color as background + white text. `aria-pressed` and `focus-visible:ring` on all buttons. `<main>` gains `pb-24` (96 px) so the last card is never obscured by the fixed floating chat button.
+
+**How Bob helped:**
+- Read `providers.json` to confirm all 5 specialties (speech, OT, PT, behavioral, feeding) are present before writing the filter logic.
+- Checked accepting-badge green vs behavioral teal before committing to the filter color scheme (same reasoning as Session 9).
+- Used `clamp()` for font sizes instead of Tailwind breakpoint classes — single rule covers all widths without duplication.
+- Applied minimum diff across 4 existing files; created 2 new files (`Logo.jsx`, `favicon.svg`). No new npm packages.
+
+---
+
 ## 2026-11-23 · Session 9 — UI polish: color accents, header alignment, page feedback form
 
 **What we changed:**

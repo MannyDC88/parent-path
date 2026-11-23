@@ -6,14 +6,20 @@
  * the "Accepting" availability badge (#E2EDDF / #2F5A35).
  */
 
-const SPECIALTY_COLORS = {
-  speech:   { bg: '#DCE7F5', color: '#28487A' },
-  OT:       { bg: '#F7EDC8', color: '#6B5310' },
+export const SPECIALTY_COLORS = {
+  speech:     { bg: '#DCE7F5', color: '#28487A' },
+  OT:         { bg: '#F7EDC8', color: '#6B5310' },
   behavioral: { bg: '#DDEFEC', color: '#1F5C55' },
-  ABA:      { bg: '#DDEFEC', color: '#1F5C55' },
-  PT:       { bg: '#E9E4F5', color: '#4A3B7A' },
-  feeding:  { bg: '#FBE5D6', color: '#7A3E1C' },
+  ABA:        { bg: '#DDEFEC', color: '#1F5C55' },
+  PT:         { bg: '#E9E4F5', color: '#4A3B7A' },
+  feeding:    { bg: '#FBE5D6', color: '#7A3E1C' },
 }
+
+/**
+ * Canonical display order for specialty filter buttons.
+ * Excludes ABA (alias of behavioral, not used as a standalone filter key).
+ */
+export const SPECIALTY_ORDER = ['speech', 'OT', 'PT', 'behavioral', 'feeding']
 
 const FALLBACK_STYLE = { backgroundColor: '#F3EBDD', color: '#6B5A3E' }
 
