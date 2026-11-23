@@ -144,6 +144,22 @@ function scrubPhones(text) {
 }
 
 // ---------------------------------------------------------------------------
+// normalizeText
+//
+// Granite sometimes uses Unicode "fancy" punctuation (non-breaking hyphens,
+// en-dashes, non-breaking spaces) which makes phone numbers un-tappable on
+// mobile and breaks PHONE_RE. Replace them with plain ASCII equivalents before
+// any other processing.
+// ---------------------------------------------------------------------------
+function normalizeText(text) {
+  return text
+    // Various dash / minus-like code points → ASCII hyphen-minus
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
+    // Non-breaking and narrow non-breaking space → regular space
+    .replace(/[\u00A0\u202F]/g, ' ')
+}
+
+// ---------------------------------------------------------------------------
 // IAM token cache (module scope — reused across warm invocations)
 // ---------------------------------------------------------------------------
 let _iamToken = null
@@ -262,9 +278,11 @@ export default async function handler(req, res) {
       data?.choices?.[0]?.message?.content?.trim() ||
       'I wasn\'t able to get a response. Please try again or call Child Find at 754-321-7200.'
 
+    // Normalize fancy Unicode punctuation Granite sometimes uses so phone
+    // numbers are tappable on mobile and PHONE_RE can match them reliably.
     // Scrub hallucinated URLs and phone numbers before the reply reaches the
     // client. Both allowlists are derived from SYSTEM_PROMPT at module load.
-    const reply = scrubPhones(scrubUrls(raw))
+    const reply = scrubPhones(scrubUrls(normalizeText(raw)))
 
     return res.status(200).json({ reply })
   } catch (err) {

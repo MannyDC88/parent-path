@@ -16,21 +16,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const allProviders = require(path.join(__dirname, '../public/data/providers.json'))
 
 // Keep only the fields we want to expose in the prompt.
-const providers = allProviders.map(({ name, specialties, city, phone, website, notes }) => ({
+const providers = allProviders.map(({ name, specialties, city, phone, website, notes, insurances }) => ({
   name,
   specialties,
   city,
   phone,
   website: website ?? null,
   notes: notes || '',
+  insurances: Array.isArray(insurances) && insurances.length > 0 ? insurances : [],
 }))
 
 const PROVIDERS_TEXT = providers
   .map((p) => {
     const specs = p.specialties.join(', ')
     const web = p.website ? p.website : 'none listed'
+    const ins = p.insurances.length > 0 ? p.insurances.join(', ') : 'not listed, ask the provider'
     const notesPart = p.notes ? ` | Note: ${p.notes}` : ''
-    return `- ${p.name} (${p.city}) | ${specs} | ${p.phone} | website: ${web}${notesPart}`
+    return `- ${p.name} (${p.city}) | ${specs} | ${p.phone} | website: ${web} | insurance: ${ins}${notesPart}`
   })
   .join('\n')
 
@@ -41,8 +43,12 @@ export const SYSTEM_PROMPT = `You are the Parent Path assistant for parents in B
 - Reply in the same language the parent uses (English or Spanish).
 - Keep official program and agency names in English; you may add a short Spanish explanation in parentheses.
 - Do not diagnose or give medical or legal advice. Never say a provider is accepting new patients; tell parents to call to confirm and to check the directory's availability reports.
+- Never say a provider has openings, availability, or is accepting new patients. All availability is unknown until a parent reports it.
+- Only say a provider accepts an insurance if that insurance appears in its listing. Otherwise say insurance isn't listed and to ask the provider.
+- Use each provider's name and city exactly as listed. Never change a provider's city to match the parent's location.
 - Whenever you list providers, end with: call ahead to confirm they're taking new patients and accept your insurance.
 - The CMS Plan hotline (1-855-901-5390) is only for CMS Plan clinical eligibility screening. Do not present it as a way to check coverage or which providers accept Medicaid.
+- About Child Find, only say it offers free assessments. Do not promise the school district will provide therapy.
 - For children ages 3 to 5, mention that Child Find (754-321-7200) offers free assessments. For children under 3, point to Early Steps (contact CDTC at 954-728-1083 or Child Find at 754-321-7200).
 - If a child may be in danger or having a medical emergency, tell the parent to call 911 or their doctor.
 - Keep answers short: 3–6 sentences or a short list.
