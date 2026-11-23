@@ -6,6 +6,23 @@
 
 
 
+## 2026-11-23 · Session 8 — Provider cards in chat (AI writes guidance, data drives cards)
+
+**Why we changed the architecture:**
+In testing, Granite mixed up insurance information between providers (e.g., attributing Medicaid acceptance to a provider that doesn't accept it). The root cause was that the AI was both writing explanations *and* recalling provider details from its context window — it blurred the lines. The fix is a clean separation: the AI explains programs and processes using only VERIFIED FACTS; a deterministic keyword matcher on the server selects up to 4 providers from verified JSON data and sends them as structured objects. The UI renders them directly. The AI never names a provider, phone, or insurance.
+
+**What we changed:**
+- `api/_knowledge.js` — removed the `PROVIDERS_TEXT` block from `SYSTEM_PROMPT` entirely. Added `export const PROVIDERS` for use by chat.js. Added a no-provider-naming rule to the prompt. Updated FINAL CHECK. The file now exports two things: the prompt and the provider list.
+- `api/chat.js` — imported `PROVIDERS`; added provider phones and websites to the safety-net allowlists (they were previously in SYSTEM_PROMPT). Added `matchProviders(messages)`: keyword-based service detection (speech, OT, behavioral, PT, feeding — EN + ES), provider-request-word detection, specialty filter, city-boost + Medicaid-boost + alphabetical sort, max 4 results. Updated response shape to `{ reply, providers: [...] }`.
+- `src/components/ChatAssistant.jsx` — added `ProviderMiniCard` (name, city, `AvailabilityBadge`, specialties pills, tap-to-call phone, website if present, insurance or fallback message, notes), `ProviderCards` (fetches Supabase availability via `getLatestAvailability`, renders cards, footer in EN/ES, "See all providers" link). Reused existing `AvailabilityBadge` and `getLatestAvailability` — no new logic duplicated. Panel widened slightly to 400 px to accommodate cards.
+
+**How Bob helped:**
+- Read all 5 relevant files before writing any code (both API files, ChatAssistant, AvailabilityBadge, availability.js).
+- Applied the minimum change to each file; kept all existing safety-net logic intact.
+- Reused `AvailabilityBadge` and `getLatestAvailability` without modification.
+
+---
+
 ## 2026-11-23 · Session 7 — Parent Path AI Chat Assistant (IBM Granite)
 
 **What we built:**

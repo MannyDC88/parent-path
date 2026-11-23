@@ -4,11 +4,15 @@
  * Floating "Ask Parent Path / Pregunte" button + chat panel.
  * - Messages stored in React state only (no localStorage, no Supabase).
  * - Feedback (👍/👎) logged to Supabase `chat_feedback` table (rating + lang only).
+ * - Provider cards shown under each assistant reply when the server returns matches.
+ *   Availability badge uses Supabase data via getLatestAvailability — same as the directory.
  * - Keyboard accessible: Escape closes, focus trap inside panel, aria labels throughout.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { getLatestAvailability } from '../api/availability'
+import AvailabilityBadge from './AvailabilityBadge'
 
 // ---------------------------------------------------------------------------
 // Language detection
@@ -26,7 +30,7 @@ function detectLang(text) {
 // Feedback buttons per assistant message
 // ---------------------------------------------------------------------------
 function FeedbackButtons({ lang }) {
-  const [state, setState] = useState('idle') // 'idle' | 'loading' | 'done' | 'error'
+  const [state, setState] = useState('idle') // 'idle' | 'loading' | 'done'
 
   async function handleVote(rating) {
     if (state !== 'idle') return
@@ -72,6 +76,137 @@ function FeedbackButtons({ lang }) {
 }
 
 // ---------------------------------------------------------------------------
+// Single provider card
+// ---------------------------------------------------------------------------
+function ProviderMiniCard({ provider, availability, lang }) {
+  const ins =
+    provider.insurances && provider.insurances.length > 0
+      ? provider.insurances.join(', ')
+      : lang === 'es'
+        ? 'No listado — pregunte al proveedor'
+        : 'Not listed — ask the provider'
+
+  return (
+    <div className="rounded-xl border border-sand bg-white px-3 py-2.5 text-xs flex flex-col gap-1">
+      {/* Name */}
+      <p className="font-semibold text-charcoal text-sm leading-tight" style={{ fontFamily: 'Fraunces, serif', fontWeight: 500 }}>
+        {provider.name}
+      </p>
+
+      {/* City + availability badge */}
+      <div className="flex items-start gap-2 flex-wrap">
+        <span className="text-muted">{provider.city}</span>
+        <AvailabilityBadge
+          status={availability?.status ?? 'unknown'}
+          lastVerified={availability?.lastVerified ?? null}
+        />
+      </div>
+
+      {/* Specialties */}
+      <div className="flex flex-wrap gap-1 mt-0.5">
+        {provider.specialties.map((s) => (
+          <span
+            key={s}
+            className="bg-pill-bg text-pill-text rounded-full px-2 py-0.5 text-[10px] font-medium"
+          >
+            {s}
+          </span>
+        ))}
+      </div>
+
+      {/* Phone */}
+      <a
+        href={`tel:${provider.phone.replace(/\D/g, '')}`}
+        aria-label={`${lang === 'es' ? 'Llamar a' : 'Call'} ${provider.name}: ${provider.phone}`}
+        className="text-sage font-medium hover:underline focus:underline focus:outline-none"
+      >
+        {provider.phone}
+      </a>
+
+      {/* Website (only if present) */}
+      {provider.website && (
+        <a
+          href={provider.website}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${provider.name} ${lang === 'es' ? 'sitio web (abre en nueva pestaña)' : 'website (opens in new tab)'}`}
+          className="text-sage hover:underline focus:underline focus:outline-none break-all"
+        >
+          {provider.website.replace(/^https?:\/\//, '')}
+        </a>
+      )}
+
+      {/* Insurance */}
+      <p className="text-muted">
+        <span className="font-medium text-charcoal">{lang === 'es' ? 'Seguro: ' : 'Insurance: '}</span>
+        {ins}
+      </p>
+
+      {/* Notes (if any) */}
+      {provider.notes && (
+        <p className="text-muted italic">{provider.notes}</p>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Provider cards block shown under an assistant reply
+// ---------------------------------------------------------------------------
+function ProviderCards({ providers, lang }) {
+  // Fetch Supabase availability for the matched providers.
+  const [availMap, setAvailMap] = useState({}) // { [id]: { status, lastVerified } }
+
+  useEffect(() => {
+    if (!providers.length) return
+    getLatestAvailability(providers.map((p) => p.id)).then((rows) => {
+      const map = {}
+      for (const row of rows) {
+        const verifiedDate = new Date(row.created_at).toLocaleDateString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+        })
+        map[row.provider_id] = { status: row.status, lastVerified: verifiedDate }
+      }
+      setAvailMap(map)
+    })
+  }, [providers])
+
+  if (!providers.length) return null
+
+  const footer =
+    lang === 'es'
+      ? 'Llame antes de ir para confirmar que aceptan nuevos pacientes y su seguro.'
+      : 'Call ahead to confirm they\'re taking new patients and accept your insurance.'
+
+  return (
+    <div className="mt-3 flex flex-col gap-2">
+      <p className="text-xs font-medium text-muted uppercase tracking-wide">
+        {lang === 'es' ? 'Proveedores del directorio' : 'From the directory'}
+      </p>
+
+      {providers.map((p) => (
+        <ProviderMiniCard
+          key={p.id}
+          provider={p}
+          availability={availMap[p.id] ?? null}
+          lang={lang}
+        />
+      ))}
+
+      <p className="text-xs text-muted italic mt-0.5">{footer}</p>
+
+      <a
+        href="/"
+        className="text-xs text-sage font-medium hover:underline focus:underline focus:outline-none"
+        aria-label={lang === 'es' ? 'Ver todos los proveedores en el directorio' : 'See all providers in the directory'}
+      >
+        {lang === 'es' ? '→ Ver todos los proveedores' : '→ See all providers'}
+      </a>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Individual chat message bubble
 // ---------------------------------------------------------------------------
 function Message({ msg, lang }) {
@@ -79,7 +214,7 @@ function Message({ msg, lang }) {
   return (
     <div className={`flex ${isAssistant ? 'justify-start' : 'justify-end'} mb-3`}>
       <div
-        className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+        className={`max-w-[90%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
           isAssistant
             ? 'bg-white border border-sand text-charcoal'
             : 'bg-sage text-white'
@@ -87,6 +222,9 @@ function Message({ msg, lang }) {
       >
         <p className="whitespace-pre-wrap">{msg.content}</p>
         {isAssistant && <FeedbackButtons lang={lang} />}
+        {isAssistant && msg.providers?.length > 0 && (
+          <ProviderCards providers={msg.providers} lang={lang} />
+        )}
       </div>
     </div>
   )
@@ -97,7 +235,7 @@ function Message({ msg, lang }) {
 // ---------------------------------------------------------------------------
 export default function ChatAssistant() {
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState([]) // { role, content }[]
+  const [messages, setMessages] = useState([]) // { role, content, providers? }[]
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -119,7 +257,6 @@ export default function ChatAssistant() {
   // Focus input when panel opens
   useEffect(() => {
     if (open) {
-      // Small delay so the panel has painted
       requestAnimationFrame(() => inputRef.current?.focus())
     }
   }, [open])
@@ -185,7 +322,7 @@ export default function ChatAssistant() {
       const data = await res.json()
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.reply },
+        { role: 'assistant', content: data.reply, providers: data.providers ?? [] },
       ])
     } catch {
       setError(
@@ -238,7 +375,7 @@ export default function ChatAssistant() {
           aria-label="Parent Path Assistant"
           className="fixed z-50 flex flex-col
             inset-x-0 bottom-0 h-[90dvh] rounded-t-2xl
-            sm:inset-auto sm:bottom-20 sm:right-5 sm:h-[520px] sm:w-[380px] sm:rounded-2xl
+            sm:inset-auto sm:bottom-20 sm:right-5 sm:h-[560px] sm:w-[400px] sm:rounded-2xl
             bg-cream border border-sand shadow-2xl"
           style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
         >

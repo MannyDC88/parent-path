@@ -3,22 +3,24 @@
  *
  * POST /api/chat
  * Body: { messages: [{ role: "user"|"assistant", content: string }] }
- * Returns: { reply: string }
+ * Returns: { reply: string, providers: Provider[] }
  *
  * Uses IBM watsonx.ai (Granite) via a server-side IAM token.
  * Secrets (WATSONX_API_KEY, WATSONX_PROJECT_ID, WATSONX_URL) are read from
  * Vercel server-side env vars — never sent to the browser.
+ *
+ * Provider matching is deterministic (keyword-based) — the AI only writes
+ * guidance, and verified data from providers.json drives the cards.
  */
 
-import { SYSTEM_PROMPT } from './_knowledge.js'
+import { SYSTEM_PROMPT, PROVIDERS } from './_knowledge.js'
 
 // ---------------------------------------------------------------------------
-// Safety net: allowlists derived from SYSTEM_PROMPT
+// Safety net: allowlists derived from SYSTEM_PROMPT + PROVIDERS
 //
-// SYSTEM_PROMPT already contains every verified URL and phone number (from
-// both the VERIFIED FACTS section and the PROVIDERS list). Deriving the
-// allowlists from it means they always stay in sync with _knowledge.js — no
-// separate providers.json load needed here.
+// SYSTEM_PROMPT contains every verified URL and phone in VERIFIED FACTS.
+// Provider phones/websites are now in PROVIDERS (not in SYSTEM_PROMPT), so we
+// build supplemental sets from PROVIDERS and merge them in.
 // ---------------------------------------------------------------------------
 
 // --- Allowed domains ---
@@ -43,6 +45,16 @@ function _extractDomains(text) {
 }
 
 const ALLOWED_DOMAINS = _extractDomains(SYSTEM_PROMPT)
+// Also allow provider websites (they were removed from SYSTEM_PROMPT to prevent
+// the AI from mixing up details; add them back to the URL allowlist only).
+for (const p of PROVIDERS) {
+  if (p.website) {
+    try {
+      const h = new URL(p.website).hostname.replace(/^www\./, '').toLowerCase()
+      ALLOWED_DOMAINS.add(h)
+    } catch { /* skip malformed */ }
+  }
+}
 
 // --- Allowed phone numbers ---
 // Extract every phone in the prompt, normalise to digits only, collect into a
@@ -62,6 +74,12 @@ function _extractPhones(text) {
 }
 
 const ALLOWED_PHONES = _extractPhones(SYSTEM_PROMPT)
+// Also allow provider phone numbers.
+for (const p of PROVIDERS) {
+  if (p.phone) {
+    ALLOWED_PHONES.add(_normalizePhone(p.phone.replace(/\D/g, '')))
+  }
+}
 
 // Short numbers that are always allowed regardless (emergency / directory).
 const ALWAYS_ALLOW_PHONES = new Set(['911', '211'])
@@ -157,6 +175,101 @@ function normalizeText(text) {
     .replace(/[\u2010\u2011\u2012\u2013\u2014\u2212]/g, '-')
     // Non-breaking and narrow non-breaking space → regular space
     .replace(/[\u00A0\u202F]/g, ' ')
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic provider matching
+//
+// The AI writes guidance only. Provider cards are populated here on the server
+// using keyword matching against all user messages in the conversation.
+// This prevents Granite from mixing up insurance, inventing availability, or
+// hallucinating provider details.
+// ---------------------------------------------------------------------------
+
+// Build a whole-word regex for a keyword using Unicode-aware boundaries so that:
+//   - "not" does not match inside "motor" or "ot"
+//   - "pt"  does not match inside "accept"
+//   - accented Spanish words (habla, lenguaje) still match correctly
+// The \p{L} and \p{N} Unicode categories require the 'u' flag.
+function _wordRe(kw) {
+  const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?<![\\p{L}\\p{N}])${escaped}(?![\\p{L}\\p{N}])`, 'iu')
+}
+
+// Pre-compile all regexes once at module load.
+const SERVICE_REGEXES = Object.fromEntries(
+  Object.entries({
+    speech:     ['speech', 'talk', 'talking', 'language', 'habla', 'hablar', 'lenguaje'],
+    OT:         ['occupational', 'ot', 'motor', 'sensory', 'ocupacional'],
+    behavioral: ['aba', 'behavior', 'behavioral', 'autism', 'conducta', 'autismo'],
+    PT:         ['physical therapy', 'pt', 'walking', 'física', 'fisica'],
+    feeding:    ['feeding', 'eating', 'alimentación', 'alimentacion'],
+  }).map(([svc, kws]) => [svc, kws.map(_wordRe)])
+)
+
+const PROVIDER_REQUEST_RES = [
+  'provider', 'therapist', 'clinic', 'doctor',
+  'proveedor', 'terapeuta', 'clínica', 'clinica',
+].map(_wordRe)
+
+// All city names that appear in providers.json (lowercase), for city-boost sorting.
+const PROVIDER_CITIES = new Set(PROVIDERS.map((p) => p.city.toLowerCase()))
+// Pre-compile city regexes for whole-word city matching.
+const CITY_REGEXES = new Map(
+  [...PROVIDER_CITIES].map((city) => [city, _wordRe(city)])
+)
+
+function matchProviders(messages) {
+  const userMsgs = messages.filter((m) => m.role === 'user')
+
+  // All user messages joined — used for context (city, Medicaid, service history).
+  const allText = userMsgs.map((m) => m.content).join(' ')
+
+  // Latest user message only — determines whether to show cards at all.
+  const latestText = userMsgs.at(-1)?.content ?? ''
+
+  // Detect services across ALL messages (so prior context carries forward).
+  const detectedServices = new Set()
+  for (const [service, res] of Object.entries(SERVICE_REGEXES)) {
+    if (res.some((re) => re.test(allText))) detectedServices.add(service)
+  }
+
+  // Check provider-request words, but only in the LATEST message.
+  const wantsProviders = PROVIDER_REQUEST_RES.some((re) => re.test(latestText))
+
+  // Only show cards if the LATEST message triggers a service or provider-request keyword.
+  const latestTriggersService = Object.values(SERVICE_REGEXES).some((res) =>
+    res.some((re) => re.test(latestText))
+  )
+  if (!latestTriggersService && !wantsProviders) return []
+
+  // Filter: provider must offer at least one detected service (or return all if
+  // only a provider-request word was matched with no specific service).
+  const filtered = PROVIDERS.filter((p) => {
+    if (detectedServices.size === 0) return true
+    return p.specialties.some((s) => detectedServices.has(s))
+  })
+
+  // Context signals from ALL messages.
+  const wantsMedicaid = /medicaid/i.test(allText)
+  const mentionedCity = [...CITY_REGEXES.entries()].find(([, re]) => re.test(allText))?.[0] ?? null
+
+  // Sort: city match first, then Medicaid match, then alphabetical by name.
+  filtered.sort((a, b) => {
+    const aCity = mentionedCity && a.city.toLowerCase() === mentionedCity ? 0 : 1
+    const bCity = mentionedCity && b.city.toLowerCase() === mentionedCity ? 0 : 1
+    if (aCity !== bCity) return aCity - bCity
+
+    if (wantsMedicaid) {
+      const aMed = a.insurances.some((i) => i.toLowerCase().includes('medicaid')) ? 0 : 1
+      const bMed = b.insurances.some((i) => i.toLowerCase().includes('medicaid')) ? 0 : 1
+      if (aMed !== bMed) return aMed - bMed
+    }
+
+    return a.name.localeCompare(b.name)
+  })
+
+  return filtered.slice(0, 4)
 }
 
 // ---------------------------------------------------------------------------
@@ -281,10 +394,13 @@ export default async function handler(req, res) {
     // Normalize fancy Unicode punctuation Granite sometimes uses so phone
     // numbers are tappable on mobile and PHONE_RE can match them reliably.
     // Scrub hallucinated URLs and phone numbers before the reply reaches the
-    // client. Both allowlists are derived from SYSTEM_PROMPT at module load.
+    // client. Both allowlists are derived from SYSTEM_PROMPT + PROVIDERS.
     const reply = scrubPhones(scrubUrls(normalizeText(raw)))
 
-    return res.status(200).json({ reply })
+    // Deterministic provider matching — no AI involvement.
+    const providers = matchProviders(messages)
+
+    return res.status(200).json({ reply, providers })
   } catch (err) {
     // Log error type/status only — never log keys, tokens, or message content
     console.error(`chat handler error: ${err.message}`)

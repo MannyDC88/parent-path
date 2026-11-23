@@ -1,7 +1,7 @@
 # NEXT — Immediate Next 3 Tasks
 
-> Updated: 2026-11-23 (Task 4 complete — AI Chat Assistant)
-> Status: Week 2 — provider directory + AI chat assistant live
+> Updated: 2026-11-23 (Task 5 complete — Provider cards in chat)
+> Status: Week 2 — provider directory + AI chat with provider cards live
 
 ---
 
@@ -67,6 +67,17 @@ Steps:
 - `src/App.jsx` — `<ChatAssistant />` wired into layout
 
 **Pre-requisite before testing:** Add `WATSONX_API_KEY`, `WATSONX_PROJECT_ID`, `WATSONX_URL` to Vercel server-side env vars (no VITE_ prefix). Run `supabase/chat_feedback.sql` in Supabase SQL editor.
+
+---
+
+## Task 5 · Provider cards in chat (AI guidance + data-driven cards)  ✅ done
+
+**Goal:** Separate AI guidance from provider data to prevent hallucinated insurance/availability.
+
+**What was done:**
+- `api/_knowledge.js` — removed PROVIDERS from system prompt; exported `PROVIDERS` for server use
+- `api/chat.js` — deterministic keyword matching returns `{ reply, providers: [...] }`
+- `src/components/ChatAssistant.jsx` — `ProviderMiniCard` + `ProviderCards` with live Supabase availability badges, tap-to-call phone, insurance fallback, "See all providers" link
 
 ---
 
